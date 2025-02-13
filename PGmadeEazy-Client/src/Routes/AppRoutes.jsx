@@ -5,6 +5,7 @@ import HowItWorks from "../Pages/HowItWorks";
 import Contact from "../Pages/Contact";           
 import SignIn from "../Pages/SignIn";             
 import GetStarted from "../Pages/GetStarted";     
+import HomePage from "../Pages/HomePage";
        
 
 export default function AppRoutes() {
@@ -12,7 +13,7 @@ export default function AppRoutes() {
     <>
     
       <Routes>
-        <Route path="/" element={<FindPG />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/find-pg" element={<FindPG />} />
         <Route path="/list-property" element={<ListProperty />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
