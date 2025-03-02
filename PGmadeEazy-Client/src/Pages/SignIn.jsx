@@ -18,7 +18,6 @@ const Login = () => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
 
-    // Clear error for this field if it exists
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" })
     }
@@ -33,7 +32,7 @@ const Login = () => {
       newErrors.email = "Email is invalid"
     }
 
-    if (!formData.password) {
+    if (!formData.password.trim()) {
       newErrors.password = "Password is required"
     }
 
@@ -50,17 +49,30 @@ const Login = () => {
 
     try {
       setMessage("Logging in...")
-      const response = await axios.post("http://localhost:5000/login", formData)
-      setMessage("Login successful!")
 
-      // Store the token or user data in localStorage or context
-      localStorage.setItem("token", response.data.token)
+      const response = await axios.get("http://localhost:5000/users")
+      const users = response.data
 
-      // Redirect to dashboard or home page
-      navigate("/dashboard")
+      const foundUser = users.find(
+        (user) => user.email === formData.email && user.password === formData.password
+      )
+
+      if (foundUser) {
+        setMessage("Login successful!")
+
+        localStorage.setItem("user", JSON.stringify(foundUser))
+
+        if (foundUser.userType === "seeker") {
+          navigate("/seeker-dashboard")
+        } else if (foundUser.userType === "provider") {
+          navigate("/provider-dashboard")
+        }
+      } else {
+        setMessage("Invalid email or password. Please try again.")
+      }
     } catch (err) {
-      setMessage(err.response?.data?.message || "Login failed. Please try again.")
-      console.error(err)
+      setMessage("Login failed. Something went wrong.")
+      console.error("Login Error:", err)
     }
   }
 
@@ -162,4 +174,3 @@ const Login = () => {
 }
 
 export default Login
-
