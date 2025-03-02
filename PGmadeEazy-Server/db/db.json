@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "id": "c437",
+      "fullName": "vamshi",
+      "email": "vmudiraj330@gmail.com",
+      "phone": "8247593561",
+      "password": "user@123",
+      "confirmPassword": "user@123",
+      "preferredLocation": "Hyderabad ",
+      "budgetMin": "5000",
+      "budgetMax": "10000",
+      "roomType": "shared",
+      "amenities": [],
+      "genderPreference": "male",
+      "moveInDate": "",
+      "businessName": "",
+      "city": "",
+      "propertyOwnershipType": "",
+      "numberOfPGs": "",
+      "rentCollectionMethod": "",
+      "userType": "seeker"
+    },
+    {
+      "id": "b60a",
+      "fullName": "Dinesh Kumar",
+      "email": "dk@gmail.com",
+      "phone": "1234567891",
+      "password": "user@123",
+      "confirmPassword": "user@123",
+      "preferredLocation": "",
+      "budgetMin": "",
+      "budgetMax": "",
+      "roomType": "",
+      "amenities": [],
+      "genderPreference": "",
+      "moveInDate": "",
+      "businessName": "CTR Analysis",
+      "city": "Chennai",
+      "propertyOwnershipType": "owner",
+      "numberOfPGs": "1",
+      "rentCollectionMethod": "",
+      "userType": "provider"
+    }
+  ]
+}

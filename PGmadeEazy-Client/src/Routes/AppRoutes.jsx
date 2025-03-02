@@ -6,12 +6,13 @@ import Contact from "../Pages/Contact";
 import SignIn from "../Pages/SignIn";             
 import GetStarted from "../Pages/GetStarted";     
 import HomePage from "../Pages/HomePage";
-       
+import Profile from "../Pages/Profile";
+import SeekerDashboard from "../Dashboards/SeekerDashboard";
+import ProviderDashboard from "../Dashboards/ProviderDashboard";
 
 export default function AppRoutes() {
   return (
     <>
-    
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/find-pg" element={<FindPG />} />
@@ -20,6 +21,9 @@ export default function AppRoutes() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/get-started" element={<GetStarted />} />
+        <Route path="/profile" element={<Profile />} />
+       <Route path="/seeker-dashboard" element={<SeekerDashboard />} />
+        <Route path="/provider-dashboard" element={<ProviderDashboard />} />
       </Routes>
     </>
   );
