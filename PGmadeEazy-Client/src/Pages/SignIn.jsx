@@ -18,6 +18,10 @@ const Login = () => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
 
+<<<<<<< HEAD
+=======
+    // Clear error for this field if it exists
+>>>>>>> features/login
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" })
     }
@@ -32,7 +36,11 @@ const Login = () => {
       newErrors.email = "Email is invalid"
     }
 
+<<<<<<< HEAD
     if (!formData.password.trim()) {
+=======
+    if (!formData.password) {
+>>>>>>> features/login
       newErrors.password = "Password is required"
     }
 
@@ -49,6 +57,7 @@ const Login = () => {
 
     try {
       setMessage("Logging in...")
+<<<<<<< HEAD
 
       const response = await axios.get("http://localhost:5000/users")
       const users = response.data
@@ -73,6 +82,19 @@ const Login = () => {
     } catch (err) {
       setMessage("Login failed. Something went wrong.")
       console.error("Login Error:", err)
+=======
+      const response = await axios.post("http://localhost:5000/login", formData)
+      setMessage("Login successful!")
+
+      // Store the token or user data in localStorage or context
+      localStorage.setItem("token", response.data.token)
+
+      // Redirect to dashboard or home page
+      navigate("/dashboard")
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Login failed. Please try again.")
+      console.error(err)
+>>>>>>> features/login
     }
   }
 
@@ -174,3 +196,7 @@ const Login = () => {
 }
 
 export default Login
+<<<<<<< HEAD
+=======
+
+>>>>>>> features/login
