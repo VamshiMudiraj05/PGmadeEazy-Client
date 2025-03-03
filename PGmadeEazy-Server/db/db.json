@@ -1,17 +1,19 @@
 {
   "users": [
     {
-      "id": "c437",
-      "fullName": "vamshi",
+      "fullName": "Vamshi",
       "email": "vmudiraj330@gmail.com",
       "phone": "8247593561",
       "password": "user@123",
       "confirmPassword": "user@123",
       "preferredLocation": "Hyderabad ",
-      "budgetMin": "5000",
-      "budgetMax": "10000",
-      "roomType": "shared",
-      "amenities": [],
+      "budgetMin": "2000",
+      "budgetMax": "3400",
+      "roomType": "private",
+      "amenities": [
+        "WiFi",
+        "Laundry"
+      ],
       "genderPreference": "male",
       "moveInDate": "",
       "businessName": "",
@@ -19,13 +21,13 @@
       "propertyOwnershipType": "",
       "numberOfPGs": "",
       "rentCollectionMethod": "",
-      "userType": "seeker"
+      "userType": "seeker",
+      "id": 1
     },
     {
-      "id": "b60a",
-      "fullName": "Dinesh Kumar",
-      "email": "dk@gmail.com",
-      "phone": "1234567891",
+      "fullName": "JAAnu",
+      "email": "jahnu@gmail.com",
+      "phone": "8247593561",
       "password": "user@123",
       "confirmPassword": "user@123",
       "preferredLocation": "",
@@ -35,12 +37,13 @@
       "amenities": [],
       "genderPreference": "",
       "moveInDate": "",
-      "businessName": "CTR Analysis",
-      "city": "Chennai",
+      "businessName": "Jilebi",
+      "city": "guntooru",
       "propertyOwnershipType": "owner",
-      "numberOfPGs": "1",
+      "numberOfPGs": "2",
       "rentCollectionMethod": "",
-      "userType": "provider"
+      "userType": "provider",
+      "id": 2
     }
   ]
 }

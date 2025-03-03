@@ -137,18 +137,13 @@ const MultiStepRegistration = () => {
 
     try {
       setMessage("Processing registration...")
-      await axios.post("http://localhost:5000/users", {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, {
         ...formData,
         userType,
       })
       setMessage("Registration successful!")
-
-      // Redirect based on user type
-      if (userType === "seeker") {
-        navigate("/listings")
-      } else {
-        navigate("/provider-dashboard")
-      }
+      // Navigate to SignIn.jsx for both user types
+      navigate("/sign-in")
     } catch (err) {
       setMessage("Registration failed. Please try again.")
       console.error(err)
@@ -379,6 +374,27 @@ const MultiStepRegistration = () => {
                 </select>
                 {errors.genderPreference && <p className="text-red-500 text-xs mt-1">{errors.genderPreference}</p>}
               </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-300">Required Amenities</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {["WiFi", "AC", "Food", "Laundry", "Parking", "TV", "Gym", "Security"].map((amenity) => (
+                    <div key={amenity} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={amenity}
+                        value={amenity}
+                        checked={formData.amenities.includes(amenity)}
+                        onChange={handleCheckboxChange}
+                        className="w-4 h-4 text-orange-500 border-gray-700 rounded focus:ring-orange-500 bg-black/60"
+                      />
+                      <label htmlFor={amenity} className="ml-2 text-sm text-gray-300">
+                        {amenity}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )
         } else {
@@ -472,27 +488,6 @@ const MultiStepRegistration = () => {
           return (
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-semibold text-white">Additional Preferences</h3>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Required Amenities</label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {["WiFi", "AC", "Food", "Laundry", "Parking", "TV", "Gym", "Security"].map((amenity) => (
-                    <div key={amenity} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={amenity}
-                        value={amenity}
-                        checked={formData.amenities.includes(amenity)}
-                        onChange={handleCheckboxChange}
-                        className="w-4 h-4 text-orange-500 border-gray-700 rounded focus:ring-orange-500 bg-black/60"
-                      />
-                      <label htmlFor={amenity} className="ml-2 text-sm text-gray-300">
-                        {amenity}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-300">Move-in Date</label>

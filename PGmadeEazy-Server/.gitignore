@@ -1,0 +1,26 @@
+# Node modules folder (don't push dependencies to GitHub)
+node_modules/
+
+# Lock files (optional, but useful if you want to regenerate them fresh)
+package-lock.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables (if you ever add .env)
+.env
+
+# Editor folders/files (VS Code, JetBrains, etc.)
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Other optional (depending on your tools)
+*.log
+.npm/
