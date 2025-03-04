@@ -24,6 +24,7 @@ export default function AppRoutes() {
         <Route path="/profile" element={<Profile />} />
        <Route path="/seeker-dashboard" element={<SeekerDashboard />} />
         <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+        
       </Routes>
     </>
   );
