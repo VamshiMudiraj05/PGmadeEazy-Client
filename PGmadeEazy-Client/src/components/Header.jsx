@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { Building2 } from "lucide-react";
 
-export default function Header() {
+export default function Header({ isLoggedIn, userType, onLogout }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-orange-600 bg-black/90 backdrop-blur-lg shadow-md shadow-orange-600/20">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -35,24 +35,61 @@ export default function Header() {
 
         {/* Action Buttons with Hover and Click Animations */}
         <div className="flex items-center gap-4">
-          <NavLink
-            to="/sign-in"
-            className={({ isActive }) =>
-              `px-4 py-2 text-sm font-medium transition-all duration-300 
-              ${isActive ? "text-orange-500" : "text-gray-300 hover:text-orange-500 hover:scale-105 transform"}`
-            }
-          >
-            Sign In
-          </NavLink>
-          <NavLink
-            to="/get-started"
-            className={({ isActive }) =>
-              `rounded-md px-4 py-2 text-sm font-medium transition-all duration-300 shadow-md 
-              ${isActive ? "bg-orange-600 text-black shadow-orange-600/30" : "bg-orange-500 text-black hover:bg-orange-600 hover:scale-105 transform active:scale-95"}`
-            }
-          >
-            Get Started
-          </NavLink>
+          {!isLoggedIn ? (
+            <>
+              <NavLink
+                to="/sign-in"
+                className={({ isActive }) =>
+                  `px-4 py-2 text-sm font-medium transition-all duration-300 
+                  ${isActive ? "text-orange-500" : "text-gray-300 hover:text-orange-500 hover:scale-105 transform"}`
+                }
+              >
+                Sign In
+              </NavLink>
+              <NavLink
+                to="/get-started"
+                className={({ isActive }) =>
+                  `rounded-md px-4 py-2 text-sm font-medium transition-all duration-300 shadow-md 
+                  ${isActive ? "bg-orange-600 text-black shadow-orange-600/30" : "bg-orange-500 text-black hover:bg-orange-600 hover:scale-105 transform active:scale-95"}`
+                }
+              >
+                Get Started
+              </NavLink>
+            </>
+          ) : (
+            <>
+              {/* Display different links based on user type */}
+              {userType === "seeker" && (
+                <NavLink
+                  to="/seeker-dashboard"
+                  className={({ isActive }) =>
+                    `px-4 py-2 text-sm font-medium transition-all duration-300 
+                    ${isActive ? "text-orange-500" : "text-gray-300 hover:text-orange-500 hover:scale-105 transform"}`
+                  }
+                >
+                  Seeker Dashboard
+                </NavLink>
+              )}
+              {userType === "provider" && (
+                <NavLink
+                  to="/provider-dashboard"
+                  className={({ isActive }) =>
+                    `px-4 py-2 text-sm font-medium transition-all duration-300 
+                    ${isActive ? "text-orange-500" : "text-gray-300 hover:text-orange-500 hover:scale-105 transform"}`
+                  }
+                >
+                  Provider Dashboard
+                </NavLink>
+              )}
+              {/* Common logout button */}
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 text-sm font-medium bg-orange-600 text-white hover:bg-orange-500 transition-all duration-300"
+              >
+                Logout
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
