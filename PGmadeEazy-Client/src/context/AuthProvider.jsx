@@ -1,7 +1,7 @@
 import { useReducer, useEffect } from "react";
 import PropTypes from 'prop-types';
 import { AuthContext } from "./AuthState";
-import AuthReducer from "../reducers/AuthReducer";
+import AuthReducer from '../reducers/AuthReducer';
 
 // Load initial state from localStorage if available
 const loadInitialState = () => {

@@ -10,7 +10,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
-  
+
   const { dispatch } = useAuth();
   const navigate = useNavigate();
 
@@ -42,32 +42,32 @@ const Login = () => {
 
     try {
       setMessage("Checking credentials...");
-      const { data: users } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
+      const response = await axios.get(`http://localhost:5000/users`);
 
-      const foundUser = users.find(
+      const foundUser = response.data.find(
         (user) => user.email === formData.email && user.password === formData.password
       );
 
       if (foundUser) {
         setMessage("Login successful!");
-
-        // ✅ Dispatch to context — updates global auth state
+        
+        // Store user ID in localStorage
+        localStorage.setItem("userId", foundUser.id);
+        localStorage.setItem("userType", foundUser.userType);
+        
+        // Store user details in global state
         dispatch({
           type: "LOGIN",
           payload: {
+            id: foundUser.id,   
             email: foundUser.email,
             userType: foundUser.userType,
-            name: foundUser.name,
+            name: foundUser.fullName,
             isAuthenticated: true
           }
         });
 
-        // Navigate to the right dashboard
-        if (foundUser.userType === "seeker") {
-          navigate("/seeker");
-        } else if (foundUser.userType === "provider") {
-          navigate("/provider");
-        }
+        navigate("/dashboard"); // Redirect to dashboard
       } else {
         setMessage("Invalid email or password. Please try again.");
       }
