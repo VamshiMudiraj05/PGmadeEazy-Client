@@ -207,6 +207,10 @@ const MultiStepRegistration = () => {
     setStep(step - 1);
   };
 
+  const removeEmptyFields = (data) => {
+    return Object.fromEntries(Object.entries(data).filter(([_, value]) => value !== "" && value !== null));
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
 
@@ -216,59 +220,23 @@ const MultiStepRegistration = () => {
 
     try {
       setMessage("Processing registration...");
-      // Create submission data based on user type
-      const submissionData = {
-        userType,
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-        currentCity: formData.currentCity,
-        govtIdType: formData.govtIdType,
-        govtIdNumber: formData.govtIdNumber,
-        emergencyContactName: formData.emergencyContactName,
-        emergencyContactNumber: formData.emergencyContactNumber,
-        ...(userType === "seeker" ? {
-          preferredLocation: formData.preferredLocation,
-          occupationType: formData.occupationType,
-          ...(formData.occupationType === "student" ? {
-            collegeName: formData.collegeName,
-            courseName: formData.courseName,
-            yearOfStudy: formData.yearOfStudy,
-            collegeAddress: formData.collegeAddress,
-            studentId: formData.studentId,
-          } : {
-            companyName: formData.companyName,
-            jobRole: formData.jobRole,
-            workExperience: formData.workExperience,
-            officeAddress: formData.officeAddress,
-            workId: formData.workId,
-          }),
-          budgetMin: formData.budgetMin,
-          budgetMax: formData.budgetMax,
-          roomType: formData.roomType,
-          genderPreference: formData.genderPreference,
-          foodPreference: formData.foodPreference,
-          amenities: formData.amenities,
-        } : {
-          pgName: formData.pgName,
-          pgAddress: formData.pgAddress,
-          availableRooms: formData.availableRooms,
-          hasSingleRooms: formData.hasSingleRooms,
-          hasSharedRooms: formData.hasSharedRooms,
-          rentMin: formData.rentMin,
-          rentMax: formData.rentMax,
-          preferredTenants: formData.preferredTenants,
-          depositAmount: formData.depositAmount,
-          noticePeriod: formData.noticePeriod,
-          houseRules: formData.houseRules,
-          additionalRules: formData.additionalRules,
-        })
-      };
 
+      // Remove empty fields before submitting
+      const submissionData = removeEmptyFields({
+        ...formData,
+        userType
+      });
+
+      // Send the filtered data to local database
+      await fetch("http://localhost:5000/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submissionData)
+      });
+
+      // Send the filtered data to Render
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, submissionData);
+
       setMessage("Registration successful!");
       navigate("/signin");
     } catch (error) {

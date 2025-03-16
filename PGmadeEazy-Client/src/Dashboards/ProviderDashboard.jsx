@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Building, Heart, Search, List, X, Menu, User, LogOut, Settings, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Building, Heart, Search, List, X, Menu, User, LogOut, Settings, Bell, Edit, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthState';
+import axios from 'axios';
 
 const ProviderDashboard = () => {
   const navigate = useNavigate();
@@ -11,39 +12,71 @@ const ProviderDashboard = () => {
   const { user } = state;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar toggle state
-  const [currentView, setCurrentView] = useState("dashboard"); // Current view (dashboard or profile)
-  const [properties, setProperties] = useState([]); // Property data (mocked)
+  const [currentView, setCurrentView] = useState("welcome"); // Current view (dashboard or profile)
   const [loading, setLoading] = useState(false);
-  const [isProfileVisible, setIsProfileVisible] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // Toggle between display and edit modes
   const [formData, setFormData] = useState({
-    name: user.name || '',
-    email: user.email || '',
-    phone: user.phone || '',
-    businessName: user.businessName || '',
-    location: user.location || '',
+    fullName: user.fullName || "",
+    email: user.email || "",
+    phone: user.phone || "",
+    dateOfBirth: user.dateOfBirth || "",
+    gender: user.gender || "",
+    currentCity: user.currentCity || "",
+    pgName: user.pgName || "",
+    pgAddress: user.pgAddress || "",
+    availableRooms: user.availableRooms || "",
+    hasSingleRooms: user.hasSingleRooms || false,
+    hasSharedRooms: user.hasSharedRooms || false,
+    rentMin: user.rentMin || "",
+    rentMax: user.rentMax || "",
+    preferredTenants: user.preferredTenants || "",
+    depositAmount: user.depositAmount || "",
+    noticePeriod: user.noticePeriod || "",
+    houseRules: user.houseRules || [],
+    amenities: user.amenities || [],
   });
 
-  // Stats (mocked for demo purposes)
-  const stats = [
-    {
-      icon: Building,
-      label: "Total Properties",
-      value: properties.length,
-    },
-    {
-      icon: Heart,
-      label: "Saved Properties",
-      value: properties.filter((prop) => prop.saved).length, // Assuming `saved` flag exists
-    },
-    {
-      icon: Search,
-      label: "Recent Searches",
-      value: properties.filter((prop) => prop.recentlySearched).length, // Assuming `recentlySearched` flag exists
-    },
-  ];
+  // Fetch Provider Data from API
+  useEffect(() => {
+    const fetchProviderData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/users/${user.id}`);
+        const userData = response.data;
+        setFormData(userData); // Update form data with fetched user data
+      } catch (error) {
+        console.error("Error fetching provider data:", error);
+      }
+    };
+    fetchProviderData();
+  }, [user.id]);
 
   // Toggle Sidebar visibility
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Handle Input Changes
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      // Handle checkboxes for houseRules and amenities
+      const updatedList = checked
+        ? [...formData[name], value]
+        : formData[name].filter((item) => item !== value);
+      setFormData({ ...formData, [name]: updatedList });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  // Handle Save Changes
+  const handleSaveChanges = async () => {
+    try {
+      await axios.put(`http://localhost:5000/users/${user.id}`, formData);
+      alert("Profile updated successfully!");
+      setIsEditMode(false); // Switch back to display mode after saving
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
+  };
 
   // Menu items for the sidebar
   const menuItems = [
@@ -51,7 +84,8 @@ const ProviderDashboard = () => {
       icon: User,
       label: "Profile",
       onClick: () => {
-        navigate("/provider-profile"); // Navigates to the profile component
+        setCurrentView("profile");
+        setIsSidebarOpen(false); // Close sidebar automatically
       },
     },
     { icon: Settings, label: "Settings", onClick: () => setCurrentView("settings") },
@@ -69,18 +103,6 @@ const ProviderDashboard = () => {
       className: "text-red-500 hover:bg-red-500/10",
     },
   ];
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Add API call to save changes here
-    console.log('Saving changes...', formData);
-    // After saving, you might want to fetch updated user data
-  };
 
   return (
     <div className="flex min-h-screen bg-black/90 backdrop-blur-lg">
@@ -132,103 +154,273 @@ const ProviderDashboard = () => {
       <div className={`flex-grow ${isSidebarOpen ? "ml-64" : ""} transition-all`}>
         <div className="container mx-auto px-4 py-8">
           {/* Dashboard Content */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-white">Provider Dashboard</h1>
-            <button
-              onClick={() => alert("Post New Property form here")}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-all duration-300"
-            >
-              <Search className="w-5 h-5" />
-              Post New Properties
-            </button>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="p-6 bg-black/80 border border-orange-600 rounded-xl shadow-md shadow-orange-600/20">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-orange-600/20 rounded-lg">
-                    <stat.icon className="w-6 h-6 text-orange-500" />
-                  </div>
-                  <div>
-                    <p className="text-gray-400">{stat.label}</p>
-                    <p className="text-2xl font-bold text-white">{stat.value}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Profile Section */}
-          {currentView === "profile" && (
-            <div className="bg-black/80 p-6 rounded-xl border border-orange-600 shadow-lg shadow-orange-600/20">
-              <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-gray-400">Name:</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-2 rounded" />
-                  </div>
-                  <div>
-                    <label className="text-gray-400">Email:</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-2 rounded" />
-                  </div>
-                  <div>
-                    <label className="text-gray-400">Phone:</label>
-                    <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full p-2 rounded" />
-                  </div>
-                  <div>
-                    <label className="text-gray-400">Business Name:</label>
-                    <input type="text" name="businessName" value={formData.businessName} onChange={handleChange} className="w-full p-2 rounded" />
-                  </div>
-                  <div>
-                    <label className="text-gray-400">Location:</label>
-                    <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full p-2 rounded" />
-                  </div>
-                </div>
-                <button type="submit" className="mt-6 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-colors">Save Changes</button>
-              </form>
+          {currentView === "welcome" && (
+            <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+              <h1 className="text-3xl font-bold text-orange-500">
+                Welcome, {formData.fullName || "Provider"}! 👋
+              </h1>
+              <p className="text-lg text-gray-300 mt-2">
+                Click on the <span className="text-orange-500 font-semibold">menu</span> for more options.
+              </p>
             </div>
           )}
 
-          {/* Properties List */}
-          <div className="bg-black/80 border border-orange-600 rounded-xl p-6 shadow-md shadow-orange-600/20">
-            <h2 className="text-xl font-bold text-white mb-4">Saved Properties</h2>
-
-            {loading ? (
-              <p className="text-gray-400">Loading properties...</p>
-            ) : properties.length === 0 ? (
-              <div className="text-center py-8">
-                <Building className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">No saved properties yet</p>
-                <button
-                  onClick={() => alert("Add new property form here")}
-                  className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-all duration-300"
-                >
-                  Post Your First Property
-                </button>
+          {/* Profile Content */}
+          {currentView === "profile" && (
+            <div className="bg-black/80 p-6 rounded-xl border border-orange-600 shadow-lg max-w-4xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-xl font-bold text-white">Profile</h1>
+                {!isEditMode && (
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-colors text-sm"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                )}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {properties.map((property) => (
-                  <div key={property.id} className="bg-black/60 border border-gray-800 rounded-lg p-4 hover:border-orange-600 transition-all duration-300">
-                    <div className="aspect-video rounded-lg bg-gray-800 mb-4">
-                      <img src={property.image || "/placeholder.svg"} alt={property.name} className="w-full h-full object-cover rounded-lg" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{property.name}</h3>
-                    <p className="text-gray-400 text-sm mb-4">{property.location}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-orange-500 font-medium">₹{property.rent.toLocaleString()}/month</span>
-                      <button onClick={() => alert("View details")} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors">
-                        <List className="w-5 h-5" />
-                      </button>
+
+              <form className="space-y-4">
+                {/* Personal Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      disabled
+                      className="w-full p-2 bg-gray-800 text-gray-500 rounded-lg cursor-not-allowed text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Phone</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Date of Birth</label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Gender</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    >
+                      <option value="">Select...</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Current City</label>
+                    <input
+                      type="text"
+                      name="currentCity"
+                      value={formData.currentCity}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Property Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">PG Name</label>
+                    <input
+                      type="text"
+                      name="pgName"
+                      value={formData.pgName}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">PG Address</label>
+                    <input
+                      type="text"
+                      name="pgAddress"
+                      value={formData.pgAddress}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Available Rooms</label>
+                    <input
+                      type="text"
+                      name="availableRooms"
+                      value={formData.availableRooms}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Rent Min</label>
+                    <input
+                      type="number"
+                      name="rentMin"
+                      value={formData.rentMin}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Rent Max</label>
+                    <input
+                      type="number"
+                      name="rentMax"
+                      value={formData.rentMax}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Preferred Tenants</label>
+                    <select
+                      name="preferredTenants"
+                      value={formData.preferredTenants}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    >
+                      <option value="">Select...</option>
+                      <option value="students">Students</option>
+                      <option value="professionals">Professionals</option>
+                      <option value="any">Any</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Deposit Amount</label>
+                    <input
+                      type="number"
+                      name="depositAmount"
+                      value={formData.depositAmount}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Notice Period</label>
+                    <input
+                      type="text"
+                      name="noticePeriod"
+                      value={formData.noticePeriod}
+                      onChange={handleChange}
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-gray-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm disabled:bg-gray-700 disabled:text-gray-400"
+                    />
+                  </div>
+                </div>
+
+                {/* House Rules and Amenities */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">House Rules</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["No Smoking", "No Guests", "No Pets", "No Parties"].map((rule) => (
+                        <label key={rule} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="houseRules"
+                            value={rule}
+                            checked={formData.houseRules.includes(rule)}
+                            onChange={handleChange}
+                            disabled={!isEditMode}
+                            className="accent-orange-500"
+                          />
+                          <span className="text-sm text-gray-400">{rule}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Amenities</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Wi-Fi", "AC", "Laundry", "Parking", "Gym"].map((amenity) => (
+                        <label key={amenity} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="amenities"
+                            value={amenity}
+                            checked={formData.amenities.includes(amenity)}
+                            onChange={handleChange}
+                            disabled={!isEditMode}
+                            className="accent-orange-500"
+                          />
+                          <span className="text-sm text-gray-400">{amenity}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Changes Button */}
+                {isEditMode && (
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={handleSaveChanges}
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-colors text-sm"
+                    >
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </button>
+                  </div>
+                )}
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>
