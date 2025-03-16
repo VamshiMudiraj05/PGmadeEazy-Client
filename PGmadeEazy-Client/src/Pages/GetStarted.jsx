@@ -228,7 +228,7 @@ const MultiStepRegistration = () => {
       });
 
       // Send the filtered data to local database
-      await fetch("https://pgmadeeazy-server.onrender.com/users", {
+      await fetch("http://localhost:5000/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submissionData)

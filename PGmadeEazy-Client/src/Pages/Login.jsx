@@ -47,7 +47,7 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('https://pgmadeeazy-server.onrender.com/api/auth/login', formData);
+      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userType', response.data.userType);
       toast.success('Login successful!');

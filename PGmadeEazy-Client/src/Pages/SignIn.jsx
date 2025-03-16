@@ -42,7 +42,7 @@ const Login = () => {
 
     try {
       setMessage("Checking credentials...");
-      const response = await axios.get(`https://pgmadeeazy-server.onrender.com/users`);
+      const response = await axios.get(`http://localhost:5000/users`);
 
       const foundUser = response.data.find(
         (user) => user.email === formData.email && user.password === formData.password
