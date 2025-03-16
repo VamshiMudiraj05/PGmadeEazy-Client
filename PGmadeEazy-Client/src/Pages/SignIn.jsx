@@ -1,74 +1,81 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { ArrowRight, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
-import axios from "axios"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Mail, Lock } from "lucide-react";
+import axios from "axios";
+import { useAuth } from "../context/AuthState";
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" })
-  const [errors, setErrors] = useState({})
-  const [message, setMessage] = useState("")
-  const navigate = useNavigate()
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState("");
+  
+  const { dispatch } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
     if (errors[name]) {
-      setErrors({ ...errors, [name]: "" })
+      setErrors({ ...errors, [name]: "" });
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
+      newErrors.email = "Email is invalid";
     }
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
+    e.preventDefault();
+    if (!validateForm()) return;
 
     try {
-      setMessage("Checking credentials...")
-      const { data: users } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`)
+      setMessage("Checking credentials...");
+      const { data: users } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
 
-
-      
-      const foundUser = users.find(user => user.email === formData.email && user.password === formData.password)
+      const foundUser = users.find(
+        (user) => user.email === formData.email && user.password === formData.password
+      );
 
       if (foundUser) {
-        setMessage("Login successful!")
+        setMessage("Login successful!");
 
-        // Store userType and email in localStorage
-        localStorage.setItem("userType", foundUser.userType)
-        localStorage.setItem("userEmail", foundUser.email)
+        // ✅ Dispatch to context — updates global auth state
+        dispatch({
+          type: "LOGIN",
+          payload: {
+            email: foundUser.email,
+            userType: foundUser.userType,
+            name: foundUser.name,
+            isAuthenticated: true
+          }
+        });
 
-        // Redirect to dashboard based on userType
+        // Navigate to the right dashboard
         if (foundUser.userType === "seeker") {
-          navigate("/seeker-dashboard")
+          navigate("/seeker");
         } else if (foundUser.userType === "provider") {
-          navigate("/provider-dashboard")
-        } else {
-          // Fallback if somehow userType is missing (shouldn't happen)
-          navigate("/")
+          navigate("/provider");
         }
       } else {
-        setMessage("Invalid email or password. Please try again.")
+        setMessage("Invalid email or password. Please try again.");
       }
     } catch (err) {
-      setMessage("Failed to fetch users. Please try again later.")
-      console.error(err)
+      setMessage("Failed to fetch users. Please try again later.");
+      console.error(err);
     }
-  }
+  };
 
   return (
     <section className="py-20 bg-black/90 backdrop-blur-lg min-h-screen flex items-center justify-center">
@@ -114,33 +121,50 @@ const Login = () => {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <input type="checkbox" id="remember" className="w-4 h-4 text-orange-500 bg-black/60 border-gray-700 rounded focus:ring-orange-500" />
-              <label htmlFor="remember" className="ml-2 text-sm text-gray-300">Remember me</label>
+              <input
+                type="checkbox"
+                id="remember"
+                className="w-4 h-4 text-orange-500 bg-black/60 border-gray-700 rounded focus:ring-orange-500"
+              />
+              <label htmlFor="remember" className="ml-2 text-sm text-gray-300">
+                Remember me
+              </label>
             </div>
-            <Link to="/forgot-password" className="text-sm text-orange-500 hover:text-orange-400">Forgot password?</Link>
+            <Link to="/forgot-password" className="text-sm text-orange-500 hover:text-orange-400">
+              Forgot password?
+            </Link>
           </div>
 
-          <button type="submit" className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-all">
+          <button
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-all"
+          >
             Login
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
 
         {message && (
-          <div className={`mt-4 p-3 rounded-xl border text-center text-sm ${
-            message.includes("successful") ? "border-green-500 text-green-400" : "border-orange-600 text-orange-400"
-          }`}>
+          <div
+            className={`mt-4 p-3 rounded-xl border text-center text-sm ${
+              message.includes("successful")
+                ? "border-green-500 text-green-400"
+                : "border-orange-600 text-orange-400"
+            }`}
+          >
             {message}
           </div>
         )}
 
         <p className="mt-6 text-center text-gray-400">
-          Don't have an account?{" "}
-          <Link to="/get-started" className="text-orange-500 hover:text-orange-400">Register here</Link>
+          Don&apos;t have an account?{" "}
+          <Link to="/get-started" className="text-orange-500 hover:text-orange-400">
+            Register here
+          </Link>
         </p>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

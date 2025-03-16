@@ -1,75 +1,97 @@
-"use client"
-
-import { useState, useRef, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { Menu, X, User, LogOut, Settings, Bell, Heart, Building, Search } from "lucide-react" // Ensure all icons are imported correctly
+import { useState, useRef, useEffect } from "react";
+import { Menu, X, User, LogOut, Settings, Bell, Heart, Building, Search } from "lucide-react"; // Ensure all icons are imported correctly
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useAuth } from './auth'; // Import useAuth hook
 
 const HamburgerMenu = ({ userType }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef(null)
-  const navigate = useNavigate()
+  const { state } = useAuth();
+  console.log('Auth State:', state);
+  console.log('User Type:', userType);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const menuRef = useRef(null);
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen)
-  }
+    setIsOpen(!isOpen);
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("userType")
-    navigate("/login")
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("userType");
+    navigate("/login");
+  };
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Menu items based on user type
   const menuItems = [
     {
       icon: User,
       label: "Profile",
-      onClick: () => navigate("/profile"),
+      onClick: () => {
+        console.log("Profile clicked - No navigation");
+        setIsOpen(false); // Close the menu
+      },
     },
     {
       icon: Settings,
       label: "Settings",
-      onClick: () => navigate("/settings"),
+      onClick: () => {
+        console.log("Settings clicked - No navigation");
+        setIsOpen(false); // Close the menu
+      },
     },
     {
       icon: Bell,
       label: "Notifications",
-      onClick: () => navigate("/notifications"),
+      onClick: () => {
+        console.log("Notifications clicked - No navigation");
+        setIsOpen(false); // Close the menu
+      },
     },
-  ]
+  ];
 
   // Add user type specific menu items
   if (userType === "seeker") {
     menuItems.push({
       icon: Heart,
       label: "Saved Properties",
-      onClick: () => navigate("/saved-properties"),
-    })
+      onClick: () => {
+        console.log("Saved Properties clicked - No navigation");
+        setIsOpen(false); // Close the menu
+      },
+    });
     menuItems.push({
       icon: Search,
       label: "Search PGs",
-      onClick: () => navigate("/search"),
-    })
+      onClick: () => {
+        console.log("Search PGs clicked - No navigation");
+        setIsOpen(false); // Close the menu
+      },
+    });
   } else if (userType === "provider") {
     menuItems.push({
       icon: Building,
       label: "My Properties",
-      onClick: () => navigate("/my-properties"),
-    })
+      onClick: () => {
+        console.log("My Properties clicked - No navigation");
+        setIsOpen(false); // Close the menu
+      },
+    });
   }
 
   // Add logout at the end
@@ -78,7 +100,7 @@ const HamburgerMenu = ({ userType }) => {
     label: "Logout",
     onClick: handleLogout,
     className: "text-red-500 hover:bg-red-500/10",
-  })
+  });
 
   return (
     <div className="relative" ref={menuRef}>
@@ -96,10 +118,7 @@ const HamburgerMenu = ({ userType }) => {
             {menuItems.map((item, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  item.onClick()
-                  setIsOpen(false)
-                }}
+                onClick={item.onClick}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-orange-600/20 transition-colors ${item.className || ""}`}
               >
                 <item.icon className="w-5 h-5" />
@@ -110,7 +129,7 @@ const HamburgerMenu = ({ userType }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default HamburgerMenu
+export default HamburgerMenu;

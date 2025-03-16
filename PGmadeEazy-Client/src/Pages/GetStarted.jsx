@@ -1,629 +1,411 @@
-"use client"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { ArrowLeft, ArrowRight, Check, Home, Building } from "lucide-react";
 
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import axios from "axios"
-import { ArrowLeft, ArrowRight, Check, Home, Building } from "lucide-react"
+// Seeker Components
+import SeekerPersonalDetails from "../components/registration/seeker/PersonalDetails";
+import SeekerOccupationDetails from "../components/registration/seeker/OccupationDetails";
+import SeekerAccommodationPreferences from "../components/registration/seeker/AccommodationPreferences";
+import SeekerVerification from "../components/registration/seeker/Verification";
+
+// Provider Components
+import ProviderPersonalDetails from "../components/registration/provider/PersonalDetails";
+import ProviderPropertyDetails from "../components/registration/provider/PropertyDetails";
+import ProviderPreferencesAndRules from "../components/registration/provider/PreferencesAndRules";
+import ProviderVerification from "../components/registration/provider/Verification";
 
 const MultiStepRegistration = () => {
-  const navigate = useNavigate()
-  const [step, setStep] = useState(1)
-  const [userType, setUserType] = useState("")
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [userType, setUserType] = useState("");
   const [formData, setFormData] = useState({
-    // Common fields
+    // Common fields for both user types
     fullName: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    currentCity: "",
+    govtIdType: "",
+    govtIdNumber: "",
+    emergencyContactName: "",
+    emergencyContactNumber: "",
+    termsAgreed: false,
 
-    // Seeker fields
+    // Seeker specific fields
     preferredLocation: "",
+    occupationType: "",
+    // Student fields
+    collegeName: "",
+    courseName: "",
+    yearOfStudy: "",
+    collegeAddress: "",
+    studentId: "",
+    // Professional fields
+    companyName: "",
+    jobRole: "",
+    workExperience: "",
+    officeAddress: "",
+    workId: "",
+    // Accommodation preferences
     budgetMin: "",
     budgetMax: "",
     roomType: "",
-    amenities: [],
     genderPreference: "",
-    moveInDate: "",
+    foodPreference: "",
+    amenities: [],
 
-    // Provider fields
-    businessName: "",
-    city: "",
-    propertyOwnershipType: "",
-    numberOfPGs: "",
-    rentCollectionMethod: "",
-  })
+    // Provider specific fields
+    pgName: "",
+    pgAddress: "",
+    availableRooms: "",
+    hasSingleRooms: false,
+    hasSharedRooms: false,
+    rentMin: "",
+    rentMax: "",
+    preferredTenants: "",
+    depositAmount: "",
+    noticePeriod: "",
+    houseRules: [],
+    additionalRules: "",
+  });
 
-  const [errors, setErrors] = useState({})
-  const [message, setMessage] = useState("")
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState("");
 
   // Calculate total steps based on user type
-  const totalSteps = userType ? 4 : 1
+  const totalSteps = userType ? 4 : 1;
 
   // Calculate progress percentage
   const calculateProgress = () => {
-    return Math.round((step / totalSteps) * 100)
-  }
+    return Math.round((step / totalSteps) * 100);
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
+    const { name, value, type, checked } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'checkbox' ? checked : value 
+    });
 
     // Clear error for this field if it exists
     if (errors[name]) {
-      setErrors({ ...errors, [name]: "" })
+      setErrors({ ...errors, [name]: "" });
     }
-  }
-
-  const handleCheckboxChange = (e) => {
-    const { value, checked } = e.target
-    if (checked) {
-      setFormData({
-        ...formData,
-        amenities: [...formData.amenities, value],
-      })
-    } else {
-      setFormData({
-        ...formData,
-        amenities: formData.amenities.filter((item) => item !== value),
-      })
-    }
-  }
+  };
 
   const handleUserTypeChange = (type) => {
-    setUserType(type)
-    setStep(2)
-  }
+    setUserType(type);
+    // Reset form data except for common fields
+    const commonFields = {
+      fullName: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      phone: formData.phone,
+      dateOfBirth: formData.dateOfBirth,
+      gender: formData.gender,
+      currentCity: formData.currentCity,
+      govtIdType: formData.govtIdType,
+      govtIdNumber: formData.govtIdNumber,
+      emergencyContactName: formData.emergencyContactName,
+      emergencyContactNumber: formData.emergencyContactNumber,
+      termsAgreed: formData.termsAgreed,
+    };
+    setFormData({ ...formData, ...commonFields });
+    setStep(2);
+  };
 
   const validateStep = () => {
-    const newErrors = {}
+    const newErrors = {};
 
     if (step === 2) {
-      // Validate common fields
-      if (!formData.fullName.trim()) newErrors.fullName = "Name is required"
+      // Common personal details validation
+      if (!formData.fullName.trim()) newErrors.fullName = "Name is required";
       if (!formData.email.trim()) {
-        newErrors.email = "Email is required"
+        newErrors.email = "Email is required";
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = "Email is invalid"
-      }
-      if (!formData.phone.trim()) {
-        newErrors.phone = "Phone number is required"
-      } else if (!/^\d{10}$/.test(formData.phone)) {
-        newErrors.phone = "Phone number must be 10 digits"
+        newErrors.email = "Email is invalid";
       }
       if (!formData.password) {
-        newErrors.password = "Password is required"
+        newErrors.password = "Password is required";
       } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters"
+        newErrors.password = "Password must be at least 6 characters";
       }
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match"
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = "Please confirm your password";
+      } else if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
+      if (!formData.phone.trim()) {
+        newErrors.phone = "Phone number is required";
+      } else if (!/^\d{10}$/.test(formData.phone)) {
+        newErrors.phone = "Phone number must be 10 digits";
+      }
+      if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
+      if (!formData.gender) newErrors.gender = "Gender is required";
+      if (!formData.currentCity.trim()) newErrors.currentCity = "Current city is required";
+    }
+
+    if (step === 3) {
+      if (userType === "seeker") {
+        if (!formData.occupationType) newErrors.occupationType = "Please select your occupation";
+        
+        if (formData.occupationType === "student") {
+          if (!formData.collegeName.trim()) newErrors.collegeName = "College name is required";
+          if (!formData.courseName.trim()) newErrors.courseName = "Course name is required";
+          if (!formData.yearOfStudy) newErrors.yearOfStudy = "Year of study is required";
+          if (!formData.collegeAddress.trim()) newErrors.collegeAddress = "College address is required";
+        } else if (formData.occupationType === "professional") {
+          if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
+          if (!formData.jobRole.trim()) newErrors.jobRole = "Job role is required";
+          if (!formData.workExperience) newErrors.workExperience = "Work experience is required";
+          if (!formData.officeAddress.trim()) newErrors.officeAddress = "Office address is required";
+        }
+      } else if (userType === "provider") {
+        if (!formData.pgName.trim()) newErrors.pgName = "PG name is required";
+        if (!formData.pgAddress.trim()) newErrors.pgAddress = "PG address is required";
+        if (!formData.availableRooms) newErrors.availableRooms = "Number of rooms is required";
+        if (!formData.hasSingleRooms && !formData.hasSharedRooms) {
+          newErrors.roomTypes = "Select at least one room type";
+        }
+        if (!formData.rentMin || !formData.rentMax) {
+          newErrors.rent = "Rent range is required";
+        }
       }
     }
 
-    if (step === 3 && userType === "seeker") {
-      if (!formData.preferredLocation.trim()) newErrors.preferredLocation = "Location is required"
-      if (!formData.budgetMin.trim() || !formData.budgetMax.trim()) newErrors.budget = "Budget range is required"
-      if (!formData.roomType) newErrors.roomType = "Room type is required"
-      if (!formData.genderPreference) newErrors.genderPreference = "Gender preference is required"
+    if (step === 4) {
+      if (userType === "seeker") {
+        if (!formData.budgetMin || !formData.budgetMax) newErrors.budget = "Budget range is required";
+        if (!formData.roomType) newErrors.roomType = "Room type is required";
+        if (!formData.genderPreference) newErrors.genderPreference = "Gender preference is required";
+        if (!formData.foodPreference) newErrors.foodPreference = "Food preference is required";
+        if (!formData.amenities.length) newErrors.amenities = "Select at least one amenity";
+      } else if (userType === "provider") {
+        if (!formData.preferredTenants) newErrors.preferredTenants = "Preferred tenants is required";
+        if (!formData.genderPreference) newErrors.genderPreference = "Gender preference is required";
+        if (!formData.depositAmount) newErrors.depositAmount = "Security deposit amount is required";
+        if (!formData.houseRules.length) newErrors.houseRules = "Select at least one house rule";
+      }
     }
 
-    if (step === 3 && userType === "provider") {
-      if (!formData.city.trim()) newErrors.city = "City is required"
-      if (!formData.propertyOwnershipType) newErrors.propertyOwnershipType = "Property ownership type is required"
-      if (!formData.numberOfPGs) newErrors.numberOfPGs = "Number of PGs is required"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const nextStep = () => {
     if (validateStep()) {
-      setStep(step + 1)
+      setStep(step + 1);
     }
-  }
+  };
 
   const prevStep = () => {
-    setStep(step - 1)
-  }
+    setStep(step - 1);
+  };
 
   const handleRegister = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateStep()) {
-      return
+      return;
     }
 
     try {
-      setMessage("Processing registration...")
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, {
-        ...formData,
+      setMessage("Processing registration...");
+      // Create submission data based on user type
+      const submissionData = {
         userType,
-      })
-      setMessage("Registration successful!")
-      // Navigate to SignIn.jsx for both user types
-      navigate("/sign-in")
-    } catch (err) {
-      setMessage("Registration failed. Please try again.")
-      console.error(err)
-    }
-  }
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        currentCity: formData.currentCity,
+        govtIdType: formData.govtIdType,
+        govtIdNumber: formData.govtIdNumber,
+        emergencyContactName: formData.emergencyContactName,
+        emergencyContactNumber: formData.emergencyContactNumber,
+        ...(userType === "seeker" ? {
+          preferredLocation: formData.preferredLocation,
+          occupationType: formData.occupationType,
+          ...(formData.occupationType === "student" ? {
+            collegeName: formData.collegeName,
+            courseName: formData.courseName,
+            yearOfStudy: formData.yearOfStudy,
+            collegeAddress: formData.collegeAddress,
+            studentId: formData.studentId,
+          } : {
+            companyName: formData.companyName,
+            jobRole: formData.jobRole,
+            workExperience: formData.workExperience,
+            officeAddress: formData.officeAddress,
+            workId: formData.workId,
+          }),
+          budgetMin: formData.budgetMin,
+          budgetMax: formData.budgetMax,
+          roomType: formData.roomType,
+          genderPreference: formData.genderPreference,
+          foodPreference: formData.foodPreference,
+          amenities: formData.amenities,
+        } : {
+          pgName: formData.pgName,
+          pgAddress: formData.pgAddress,
+          availableRooms: formData.availableRooms,
+          hasSingleRooms: formData.hasSingleRooms,
+          hasSharedRooms: formData.hasSharedRooms,
+          rentMin: formData.rentMin,
+          rentMax: formData.rentMax,
+          preferredTenants: formData.preferredTenants,
+          depositAmount: formData.depositAmount,
+          noticePeriod: formData.noticePeriod,
+          houseRules: formData.houseRules,
+          additionalRules: formData.additionalRules,
+        })
+      };
 
-  // Render form steps
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, submissionData);
+      setMessage("Registration successful!");
+      navigate("/signin");
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Registration failed. Please try again.");
+    }
+  };
+
   const renderStep = () => {
     switch (step) {
       case 1:
         return (
-          <div className="flex flex-col gap-6">
-            <h3 className="text-xl font-semibold text-white text-center">I am looking to...</h3>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white">Choose Your Role</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => handleUserTypeChange("seeker")}
-                className={`p-6 border-2 rounded-xl flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:scale-105 ${
+                className={`p-6 rounded-lg border transition-all duration-300 flex flex-col items-center gap-4 ${
                   userType === "seeker"
-                    ? "border-orange-500 bg-black/80 shadow-md shadow-orange-600/20"
-                    : "border-gray-700 bg-black/60 hover:border-orange-600"
+                    ? "border-orange-500 bg-black/90 text-white"
+                    : "border-gray-800 bg-black/70 text-gray-400 hover:border-orange-500 hover:text-white"
                 }`}
               >
-                <div className="w-16 h-16 bg-black/80 rounded-full flex items-center justify-center border border-orange-600">
-                  <Home className="w-8 h-8 text-orange-500 animate-pulse" />
-                </div>
-                <span className="font-medium text-white">Find Accommodation</span>
-                <span className="text-sm text-gray-400">I'm a Seeker</span>
+                <Home className="w-12 h-12" />
+                <span className="text-lg font-medium">PG Seeker</span>
+                <p className="text-sm text-center">Looking for a PG accommodation</p>
               </button>
-
               <button
                 type="button"
                 onClick={() => handleUserTypeChange("provider")}
-                className={`p-6 border-2 rounded-xl flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:scale-105 ${
+                className={`p-6 rounded-lg border transition-all duration-300 flex flex-col items-center gap-4 ${
                   userType === "provider"
-                    ? "border-orange-500 bg-black/80 shadow-md shadow-orange-600/20"
-                    : "border-gray-700 bg-black/60 hover:border-orange-600"
+                    ? "border-orange-500 bg-black/90 text-white"
+                    : "border-gray-800 bg-black/70 text-gray-400 hover:border-orange-500 hover:text-white"
                 }`}
               >
-                <div className="w-16 h-16 bg-black/80 rounded-full flex items-center justify-center border border-orange-600">
-                  <Building className="w-8 h-8 text-orange-500 animate-pulse" />
-                </div>
-                <span className="font-medium text-white">List My Property</span>
-                <span className="text-sm text-gray-400">I'm a Provider</span>
+                <Building className="w-12 h-12" />
+                <span className="text-lg font-medium">PG Provider</span>
+                <p className="text-sm text-center">Want to list your property</p>
               </button>
             </div>
           </div>
-        )
-
+        );
       case 2:
-        return (
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xl font-semibold text-white">Basic Information</h3>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Full Name</label>
-              <input
-                type="text"
-                name="fullName"
-                placeholder="Enter your full name"
-                value={formData.fullName}
-                onChange={handleChange}
-                className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                  errors.fullName ? "border-red-500" : "border-gray-700"
-                }`}
-              />
-              {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Email</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email address"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                  errors.email ? "border-red-500" : "border-gray-700"
-                }`}
-              />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Enter your phone number"
-                value={formData.phone}
-                onChange={handleChange}
-                className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                  errors.phone ? "border-red-500" : "border-gray-700"
-                }`}
-              />
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Create a password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                  errors.password ? "border-red-500" : "border-gray-700"
-                }`}
-              />
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                  errors.confirmPassword ? "border-red-500" : "border-gray-700"
-                }`}
-              />
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-            </div>
-          </div>
-        )
-
+        return userType === "seeker" ? (
+          <SeekerPersonalDetails formData={formData} handleChange={handleChange} errors={errors} />
+        ) : (
+          <ProviderPersonalDetails formData={formData} handleChange={handleChange} errors={errors} />
+        );
       case 3:
-        if (userType === "seeker") {
-          return (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold text-white">Accommodation Preferences</h3>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Preferred Location</label>
-                <input
-                  type="text"
-                  name="preferredLocation"
-                  placeholder="City, Area, Near College/Office"
-                  value={formData.preferredLocation}
-                  onChange={handleChange}
-                  className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                    errors.preferredLocation ? "border-red-500" : "border-gray-700"
-                  }`}
-                />
-                {errors.preferredLocation && <p className="text-red-500 text-xs mt-1">{errors.preferredLocation}</p>}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Budget Range (₹)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    name="budgetMin"
-                    placeholder="Min"
-                    value={formData.budgetMin}
-                    onChange={handleChange}
-                    className={`w-1/2 p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                      errors.budget ? "border-red-500" : "border-gray-700"
-                    }`}
-                  />
-                  <input
-                    type="number"
-                    name="budgetMax"
-                    placeholder="Max"
-                    value={formData.budgetMax}
-                    onChange={handleChange}
-                    className={`w-1/2 p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                      errors.budget ? "border-red-500" : "border-gray-700"
-                    }`}
-                  />
-                </div>
-                {errors.budget && <p className="text-red-500 text-xs mt-1">{errors.budget}</p>}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Preferred Room Type</label>
-                <select
-                  name="roomType"
-                  value={formData.roomType}
-                  onChange={handleChange}
-                  className={`w-full p-2.5 bg-black/60 border rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                    errors.roomType ? "border-red-500" : "border-gray-700"
-                  }`}
-                >
-                  <option value="" className="bg-black text-gray-400">
-                    Select Room Type
-                  </option>
-                  <option value="private" className="bg-black text-white">
-                    Private Room
-                  </option>
-                  <option value="shared" className="bg-black text-white">
-                    Shared Room
-                  </option>
-                  <option value="any" className="bg-black text-white">
-                    Any
-                  </option>
-                </select>
-                {errors.roomType && <p className="text-red-500 text-xs mt-1">{errors.roomType}</p>}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Gender Preference</label>
-                <select
-                  name="genderPreference"
-                  value={formData.genderPreference}
-                  onChange={handleChange}
-                  className={`w-full p-2.5 bg-black/60 border rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                    errors.genderPreference ? "border-red-500" : "border-gray-700"
-                  }`}
-                >
-                  <option value="" className="bg-black text-gray-400">
-                    Select Gender Preference
-                  </option>
-                  <option value="male" className="bg-black text-white">
-                    Male
-                  </option>
-                  <option value="female" className="bg-black text-white">
-                    Female
-                  </option>
-                  <option value="any" className="bg-black text-white">
-                    Any
-                  </option>
-                </select>
-                {errors.genderPreference && <p className="text-red-500 text-xs mt-1">{errors.genderPreference}</p>}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Required Amenities</label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {["WiFi", "AC", "Food", "Laundry", "Parking", "TV", "Gym", "Security"].map((amenity) => (
-                    <div key={amenity} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={amenity}
-                        value={amenity}
-                        checked={formData.amenities.includes(amenity)}
-                        onChange={handleCheckboxChange}
-                        className="w-4 h-4 text-orange-500 border-gray-700 rounded focus:ring-orange-500 bg-black/60"
-                      />
-                      <label htmlFor={amenity} className="ml-2 text-sm text-gray-300">
-                        {amenity}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )
-        } else {
-          return (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold text-white">Property Information</h3>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Business Name (Optional)</label>
-                <input
-                  type="text"
-                  name="businessName"
-                  placeholder="Your business name (if applicable)"
-                  value={formData.businessName}
-                  onChange={handleChange}
-                  className="w-full p-2.5 bg-black/60 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">City/Town</label>
-                <input
-                  type="text"
-                  name="city"
-                  placeholder="Where your property is located"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className={`w-full p-2.5 bg-black/60 border rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                    errors.city ? "border-red-500" : "border-gray-700"
-                  }`}
-                />
-                {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Property Ownership Type</label>
-                <select
-                  name="propertyOwnershipType"
-                  value={formData.propertyOwnershipType}
-                  onChange={handleChange}
-                  className={`w-full p-2.5 bg-black/60 border rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                    errors.propertyOwnershipType ? "border-red-500" : "border-gray-700"
-                  }`}
-                >
-                  <option value="" className="bg-black text-gray-400">
-                    Select Ownership Type
-                  </option>
-                  <option value="owner" className="bg-black text-white">
-                    Owner
-                  </option>
-                  <option value="manager" className="bg-black text-white">
-                    Manager
-                  </option>
-                </select>
-                {errors.propertyOwnershipType && (
-                  <p className="text-red-500 text-xs mt-1">{errors.propertyOwnershipType}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Number of PGs Managed</label>
-                <select
-                  name="numberOfPGs"
-                  value={formData.numberOfPGs}
-                  onChange={handleChange}
-                  className={`w-full p-2.5 bg-black/60 border rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all ${
-                    errors.numberOfPGs ? "border-red-500" : "border-gray-700"
-                  }`}
-                >
-                  <option value="" className="bg-black text-gray-400">
-                    Select Number
-                  </option>
-                  <option value="1" className="bg-black text-white">
-                    1
-                  </option>
-                  <option value="2" className="bg-black text-white">
-                    2
-                  </option>
-                  <option value="3+" className="bg-black text-white">
-                    3+
-                  </option>
-                </select>
-                {errors.numberOfPGs && <p className="text-red-500 text-xs mt-1">{errors.numberOfPGs}</p>}
-              </div>
-            </div>
-          )
-        }
-
+        return userType === "seeker" ? (
+          <SeekerOccupationDetails formData={formData} handleChange={handleChange} errors={errors} />
+        ) : (
+          <ProviderPropertyDetails formData={formData} handleChange={handleChange} errors={errors} />
+        );
       case 4:
-        if (userType === "seeker") {
-          return (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold text-white">Additional Preferences</h3>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Move-in Date</label>
-                <input
-                  type="date"
-                  name="moveInDate"
-                  value={formData.moveInDate}
-                  onChange={handleChange}
-                  className="w-full p-2.5 bg-black/60 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              <div className="bg-black/80 border border-orange-600 p-4 rounded-xl mt-2 shadow-md shadow-orange-600/20">
-                <h4 className="font-medium text-orange-500">What happens next?</h4>
-                <p className="text-sm text-gray-400 mt-1">
-                  After registration, you'll be redirected to PG listings that match your preferences.
-                </p>
-              </div>
-            </div>
-          )
-        } else {
-          return (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold text-white">Final Details</h3>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">How Do You Collect Rent?</label>
-                <select
-                  name="rentCollectionMethod"
-                  value={formData.rentCollectionMethod}
-                  onChange={handleChange}
-                  className="w-full p-2.5 bg-black/60 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                >
-                  <option value="" className="bg-black text-gray-400">
-                    Select Method
-                  </option>
-                  <option value="online" className="bg-black text-white">
-                    Online
-                  </option>
-                  <option value="cash" className="bg-black text-white">
-                    Cash
-                  </option>
-                  <option value="both" className="bg-black text-white">
-                    Both
-                  </option>
-                </select>
-              </div>
-
-              <div className="bg-black/80 border border-orange-600 p-4 rounded-xl mt-2 shadow-md shadow-orange-600/20">
-                <h4 className="font-medium text-orange-500">What happens next?</h4>
-                <p className="text-sm text-gray-400 mt-1">
-                  After registration, you'll be redirected to your dashboard where you can add full property details and
-                  photos.
-                </p>
-              </div>
-            </div>
-          )
-        }
-
+        return userType === "seeker" ? (
+          <SeekerAccommodationPreferences formData={formData} handleChange={handleChange} errors={errors} />
+        ) : (
+          <ProviderPreferencesAndRules formData={formData} handleChange={handleChange} errors={errors} />
+        );
+      case 5:
+        return userType === "seeker" ? (
+          <SeekerVerification formData={formData} handleChange={handleChange} errors={errors} />
+        ) : (
+          <ProviderVerification formData={formData} handleChange={handleChange} errors={errors} />
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
-    <section className="py-20 bg-black/90 backdrop-blur-lg min-h-screen flex items-center justify-center">
-      <div className="container max-w-md bg-black/80 p-6 rounded-xl border border-orange-600 shadow-lg shadow-orange-600/20">
-        <h2 className="text-3xl font-bold text-center text-white">
-          {step === 1 ? "Get Started" : userType === "seeker" ? "Seeker Registration" : "Provider Registration"}
-        </h2>
-
-        {/* Progress bar */}
-        <div className="w-full bg-gray-800 h-2 rounded-full mt-6">
-          <div
-            className="h-2 bg-orange-500 rounded-full transition-all duration-300 ease-in-out"
-            style={{ width: `${calculateProgress()}%` }}
-          ></div>
+    <div className="min-h-screen bg-black/90 backdrop-blur-lg py-12 px-4">
+      <div className="container mx-auto max-w-3xl">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-orange-500 transition-all duration-300"
+              style={{ width: `${calculateProgress()}%` }}
+            />
+          </div>
+          <div className="mt-2 text-sm text-gray-400">
+            Step {step} of {totalSteps}
+          </div>
         </div>
-        <p className="text-right text-xs text-gray-400 mt-1">
-          Step {step} of {totalSteps}
-        </p>
 
-        <form onSubmit={handleRegister} className="mt-6">
+        {/* Form */}
+        <form onSubmit={handleRegister} className="space-y-8">
+          {/* Step Content */}
           {renderStep()}
 
-          <div className="flex justify-between mt-8">
+          {/* Error Message */}
+          {message && (
+            <div className={`p-4 rounded ${message.includes("successful") ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+              {message}
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between gap-4">
             {step > 1 && (
               <button
                 type="button"
                 onClick={prevStep}
-                className="flex items-center gap-1 px-4 py-2 text-gray-300 bg-black/60 border border-gray-700 rounded-lg hover:bg-black/80 hover:border-orange-600 transition-all duration-300"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-800 text-gray-400 hover:border-orange-500 hover:text-white transition-all duration-300"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back
+                <ArrowLeft className="w-5 h-5" />
+                Previous
               </button>
             )}
-
             {step < totalSteps ? (
               <button
                 type="button"
                 onClick={nextStep}
-                className={`flex items-center gap-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-all duration-300 ml-auto ${
-                  step === 1 && !userType ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={step === 1 && !userType}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg bg-orange-500 text-black font-medium hover:bg-orange-600 transition-all duration-300 ml-auto"
               >
                 Next
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             ) : (
-              <button
-                type="submit"
-                className="flex items-center gap-1 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-all duration-300 ml-auto"
-              >
-                Complete Registration
-                <Check className="w-4 h-4" />
-              </button>
+              step !== 1 && (
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-orange-500 text-black font-medium hover:bg-orange-600 transition-all duration-300 ml-auto"
+                >
+                  Register
+                  <Check className="w-5 h-5" />
+                </button>
+              )
             )}
           </div>
         </form>
-
-        {message && (
-          <div
-            className={`mt-4 p-3 rounded-xl border text-center text-sm ${
-              message.includes("successful")
-                ? "bg-black/80 border-green-500 text-green-400"
-                : "bg-black/80 border-orange-600 text-orange-400"
-            }`}
-          >
-            {message}
-          </div>
-        )}
       </div>
-    </section>
-  )
-}
+    </div>
+  );
+};
 
-export default MultiStepRegistration
-
+export default MultiStepRegistration;
