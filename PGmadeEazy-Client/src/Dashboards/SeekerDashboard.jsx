@@ -40,7 +40,7 @@ const SeekerDashboard = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:5000/users/${userId}`);
+        const response = await axios.get(`https://pgmadeeazy-server.onrender.com/users/${userId}`);
         setUserData(response.data);
         setFormData(response.data); // Keep original data for editing
       } catch (error) {
@@ -57,7 +57,7 @@ const SeekerDashboard = () => {
   // Handle Save Changes
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/users/${formData.id}`, formData);
+      await axios.put(`https://pgmadeeazy-server.onrender.com/users/${formData.id}`, formData);
       setUserData(formData);
       alert("Profile updated successfully!");
       setIsEditMode(false); // Switch back to display mode after saving
@@ -105,8 +105,8 @@ const SeekerDashboard = () => {
         <Menu className="w-6 h-6 text-white" />
       </button>
 
-{/* Main Content */}
-<main className="flex-1 container mx-auto p-6 pt-20">
+      {/* Main Content */}
+      <main className="flex-1 container mx-auto p-6 pt-20">
         {currentView === "welcome" && userData && (
           <div className="flex flex-col items-center justify-center h-[50vh] text-center">
             <h1 className="text-3xl font-bold text-orange-500">

@@ -174,6 +174,71 @@
       ],
       "userType": "provider",
       "id": 8
+    },
+    {
+      "fullName": "Radha",
+      "email": "radha@gmail.com",
+      "password": "user@123",
+      "confirmPassword": "user@123",
+      "phone": "0824759356",
+      "dateOfBirth": "2004-11-05",
+      "gender": "male",
+      "currentCity": "Hyderabad",
+      "termsAgreed": false,
+      "preferredLocation": "Hyderabad",
+      "occupationType": "student",
+      "collegeName": "Malla Reddy university",
+      "courseName": "ds",
+      "yearOfStudy": "3",
+      "collegeAddress": "maisammaguda",
+      "studentId": "sdagawerg",
+      "budgetMin": "300",
+      "budgetMax": "50000",
+      "roomType": "single",
+      "genderPreference": "male",
+      "foodPreference": "veg",
+      "amenities": [
+        "Wi-Fi",
+        "AC",
+        "Laundry"
+      ],
+      "hasSingleRooms": false,
+      "hasSharedRooms": false,
+      "houseRules": [],
+      "userType": "seeker",
+      "id": 9
+    },
+    {
+      "fullName": "sanju",
+      "email": "sanju@gmail.com",
+      "password": "user@123",
+      "confirmPassword": "user@123",
+      "phone": "0824759356",
+      "dateOfBirth": "2004-12-05",
+      "gender": "male",
+      "currentCity": "Hyderabad",
+      "termsAgreed": false,
+      "genderPreference": "male",
+      "amenities": [
+        "Wi-Fi",
+        "AC"
+      ],
+      "pgName": "sanju pg",
+      "pgAddress": "maisammaguda",
+      "availableRooms": "4",
+      "hasSingleRooms": true,
+      "hasSharedRooms": false,
+      "rentMin": "49",
+      "rentMax": "688",
+      "preferredTenants": "students",
+      "depositAmount": "400",
+      "noticePeriod": "5",
+      "houseRules": [
+        "No Smoking"
+      ],
+      "additionalRules": "gdf",
+      "userType": "provider",
+      "id": 10
     }
   ]
 }
