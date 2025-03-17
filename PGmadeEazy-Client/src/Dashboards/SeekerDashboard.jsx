@@ -56,8 +56,10 @@ const SeekerDashboard = () => {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   // Handle Save Changes
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (event) => {
+    event.preventDefault()
     try {
+      // console.log(`${import.meta.env.VITE_API_BASE_URL}/users/${formData.id}`)
       await axios.put(`${import.meta.env.VITE_API_BASE_URL}/users/${formData.id}`, formData);
 
       setUserData(formData);
