@@ -228,11 +228,11 @@ const MultiStepRegistration = () => {
       });
 
       // Send the filtered data to local database
-      await fetch("http://localhost:5000/users", {
+      /*await fetch("http://localhost:5000/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submissionData)
-      });
+      });*/
 
       // Send the filtered data to Render
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, submissionData);

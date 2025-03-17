@@ -42,7 +42,8 @@ const Login = () => {
 
     try {
       setMessage("Checking credentials...");
-      const response = await axios.get(`http://localhost:5000/users`);
+     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
+
 
       const foundUser = response.data.find(
         (user) => user.email === formData.email && user.password === formData.password

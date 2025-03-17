@@ -40,7 +40,8 @@ const SeekerDashboard = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:5000/users/${userId}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`);
+
         setUserData(response.data);
         setFormData(response.data); // Keep original data for editing
       } catch (error) {
@@ -57,7 +58,8 @@ const SeekerDashboard = () => {
   // Handle Save Changes
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/users/${formData.id}`, formData);
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/users/${formData.id}`, formData);
+
       setUserData(formData);
       alert("Profile updated successfully!");
       setIsEditMode(false); // Switch back to display mode after saving

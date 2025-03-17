@@ -40,7 +40,8 @@ const ProviderDashboard = () => {
   useEffect(() => {
     const fetchProviderData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/users/${user.id}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/${user.id}`);
+
         const userData = response.data;
         setFormData(userData); // Update form data with fetched user data
       } catch (error) {
@@ -70,7 +71,8 @@ const ProviderDashboard = () => {
   // Handle Save Changes
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/users/${user.id}`, formData);
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/users/${user.id}`, formData);
+
       alert("Profile updated successfully!");
       setIsEditMode(false); // Switch back to display mode after saving
     } catch (error) {
